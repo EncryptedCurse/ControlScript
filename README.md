@@ -6,12 +6,21 @@ An easy-to-use Minecraft server management bash script made for use with [tmux](
 * Start, stop, forcefully kill or restart your server
 * Easily update Spigot to the latest version
 * Fancy colors *(use a 256 color terminal!)*
-* ...and a handful of other neat features - just see for yourself
+* ...and a handful of other neat features — just see for yourself
 
 ----
 
-The script's functions are accessible by executing the script and attaching a command to it.<br>
-> **example:** ./cs.sh help
+The script's functions can be accessed executing the script and attaching a command to it.<br>
+> ./cs.sh help
+
+You may alternatively opt to set a symbolic link with the help of `alternatives`, which would make the script globally available, without the need to include "./cs.sh" prefix.<br>
+> sudo update-alternatives --install /usr/bin/cs cs **/full/path/to/script** 1<br>
+> cs help
+
+To undo this action, you may use the following command:
+> sudo update-alternatives --remove cs **/full/path/to/script**
+
+----
 
 command | description
 | ------------- |-------------|
