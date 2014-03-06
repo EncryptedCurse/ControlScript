@@ -5,6 +5,8 @@ shopt -s nocasematch
 
 # -- LICENSE.
 
+#	Copyright (c) 2014 EncryptedCurse
+#
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU Affero General Public License as
 #	published by the Free Software Foundation, either version 3 of the
@@ -20,11 +22,11 @@ shopt -s nocasematch
 
 # -- CONFIGURATION.
 
-# The inital amount of RAM the JVM should launch with.
+# The initial amount of RAM that the JVM starts with.
 XMS="768M"
 # The maximum amount of RAM that the JVM can allocate to itself.
 XMX="1536M"
-# Something something, something.
+# Something something, something. Recommended to keep as is.
 PERMSIZE="128M"
 # The name of the server JAR.
 JAR="spigot.jar"
@@ -55,7 +57,7 @@ start() {
 		fi
 	else
 		echo -e "\e[92mStarting server...\e[0m"
-        cd /; cd "$SERVER_DIR"
+		cd /; cd "$SERVER_DIR"
 		sleep 5
 		tmux new -s "$TMUX_NAME" "java -Xms"$XMS" -Xmx"$XMX" -XX:MaxPermSize="$PERMSIZE" -jar "$JAR""
 	fi
@@ -63,16 +65,37 @@ start() {
 
 # Stops the server.
 stop() {
-    echo -e "\e[90mStopping server...\e[0m"; sleep 5
-    tmux send-keys -t "$TMUX_NAME":0 C-l 'stop' Enter
-    echo -e "\e[92mServer stopped.\e[0m"
+	echo -e "\e[90mStopping server...\e[0m"; sleep 5
+	tmux send-keys -t "$TMUX_NAME":0 C-l 'stop' Enter
+	echo -e "\e[92mServer stopped.\e[0m"
+}
+
+# Forcefully kills the server process.
+PID="$(pgrep java 1> /dev/null)"
+
+kill() {
+	$PID
+	EXIT_CODE=$?
+	if [[ "$EXIT_CODE" -eq 0 ]]; then
+		echo -e "\e[mAre you sure you want to forcefully terminate the server?\e[0m"
+		read RESULT
+		if [[ "$RESULT" = "y" || "$RESULT" = "yes" ]]; then
+			echo -e "\e[90mKilling process...\e[0m"; sleep 5
+			echo -e "\e[mDone.\e[0m"
+			killall -9 java
+		else
+			echo -e "\e[93mOperation cancelled.\e[0m"
+		fi
+	else
+		echo "The server is not running."
+	fi
 }
 
 # Restarts the server.
 restart() {
 	echo -e "\e[92mThe server is going for a restart."; sleep 1
-    echo -e "\e[90mStopping server...\e[0m"; sleep 5
-    tmux send-keys -t "$TMUX_NAME":0 C-l 'stop' Enter
+	echo -e "\e[90mStopping server...\e[0m"; sleep 5
+	tmux send-keys -t "$TMUX_NAME":0 C-l 'stop' Enter
 	sleep 5
 	echo -e "\e[90mStarting server...\e[0m"; sleep 5
 	cd /; cd "$SERVER_DIR"
@@ -81,11 +104,11 @@ restart() {
 
 # Resumes/attaches the server's tmux session.
 resume() {
-    if tmux has-session -t "$TMUX_NAME" &> /dev/null; then
-        tmux attach -t "$TMUX_NAME"
-    else
-        echo -e "\e[91mNo server session exists.\e[0m"
-    fi
+	if tmux has-session -t "$TMUX_NAME" &> /dev/null; then
+		tmux attach -t "$TMUX_NAME"
+	else
+		echo -e "\e[91mNo server session exists.\e[0m"
+	fi
 }
 
 # Checks for the current server version.
@@ -93,18 +116,18 @@ SERVER_SOFTWARE="$(java -jar $JAR --version 2> /dev/null | awk 'BEGIN{FS=OFS="-"
 CURRENT_VERSION="$(java -jar $JAR --version 2> /dev/null | sed 's/[^0-9]//g')"
 
 current_version() {
-    echo -e "\e[38;5;48mThis server is currently running $SERVER_SOFTWARE #$CURRENT_VERSION.\e[0m"
+	echo -e "\e[38;5;48mThis server is currently running $SERVER_SOFTWARE #$CURRENT_VERSION.\e[0m"
 }
 
 # Checks for the latest build of Spigot, and compares it to the current one.
 LATEST_VERSION="$(curl -s http://ci.md-5.net/job/Spigot/lastBuild/buildNumber)"
 
 latest_version() {
-    if [[ "$LATEST_VERSION" = "$CURRENT_VERSION" ]]; then
-    	echo -e "\e[38;5;48mThe latest version of Spigot is #$LATEST_VERSION. \e[90mYour server is already up to date.\e[0m"
-    else
-    	echo -e "\e[38;5;48mThe latest version of Spigot is #$LATEST_VERSION. \e[90mYour server is outdated!\e[0m"
-    fi
+	if [[ "$LATEST_VERSION" = "$CURRENT_VERSION" ]]; then
+		echo -e "\e[38;5;48mThe latest version of Spigot is #$LATEST_VERSION. \e[90mYour server is already up to date.\e[0m"
+	else
+		echo -e "\e[38;5;48mThe latest version of Spigot is #$LATEST_VERSION. \e[90mYour server is outdated!\e[0m"
+	fi
 }
 
 # Attempts to update Spigot if a new build is found.
@@ -120,8 +143,8 @@ update() {
         IS_VALID_JAR="$(java -jar "$NEW_JAR" --version)"
         ATTEMPTS=0
         until [[ "$IS_VALID_JAR" || "$ATTEMPTS" -gt "5" ]]; do
-            rm -f "$NEW_JAR"
-            echo -e "\e[91mThe downloaded JAR is corrupt! Attempting to"
+			rm -f "$NEW_JAR"
+            echo -e "\e[91mThe downloaded JAR is corrupt! Attempti"
             echo -e "\e[90mDownloading new JAR...\e[0m"
             wget "$UPDATE_URL" -O "$NEW_JAR"
             IS_VALID_JAR="`java -jar $NEW_JAR --version`"
@@ -139,49 +162,51 @@ update() {
             echo "Giving up"
             rm -f "$NEW_JAR"
         fi
-    else
-        echo "Server up to date"
-    fi
+	else
+		echo "Server up to date"
+	fi
 }
 
 cmd_help() {
-    echo
-    echo -e "\e[38;5;69m —————————————————————\e[0m \e[38;5;81mControlScript // help\e[0m \e[38;5;69m—————————————————————\e[0m"
-    echo -e "\e[97m  start\e[37m            Starts the server\e[0m"
-    echo -e "\e[97m  stop\e[37m             Stops the server\e[0m"
-    echo -e "\e[97m  restart\e[37m          Restarts the server\e[0m"
-    #echo -e "\e[97m  send\e[37m             Passes a command to the server\e[0m"
-    echo -e "\e[97m  update\e[37m           Updates Spigot if new version is found\e[0m"
-    #echo -e "\e[97m  backup\e[37m     Creates a backup of the server\e[0m"
-    echo -e "\e[97m  current-version\e[37m  Displays your server's current Spigot version\e[0m"
-    echo -e "\e[97m  latest-version\e[37m   Displays the latest Spigot version\e[0m"
-    echo
+	echo
+	echo -e "\e[38;5;69m —————————————————————\e[0m \e[38;5;81mControlScript // help\e[0m \e[38;5;69m—————————————————————\e[0m"
+	echo -e "\e[97m  start\e[37m            Starts the server\e[0m"
+	echo -e "\e[97m  stop\e[37m             Stops the server\e[0m"
+	echo -e "\e[97m  restart\e[37m          Restarts the server\e[0m"
+	echo -e "\e[97m  update\e[37m           Updates Spigot if new version is found\e[0m"
+	echo -e "\e[97m  current-version\e[37m  Displays your server's current Spigot version\e[0m"
+	echo -e "\e[97m  latest-version\e[37m   Displays the latest Spigot version\e[0m"
+	echo
 }
 
 main() {
-    local -r FUNCTION="$1"
-    case "$FUNCTION" in
-        start)
-            start ;;
-        stop)
-            stop ;;
-        resume)
-            resume ;;
-        current-version)
-            current_version ;;
-        latest-version)
-            latest_version ;;
-        update)
-            update ;;
-        send)
-            send "${@:2}" ;;
-        help)
-            cmd_help "${@:2}" ;;
-        ?*)
-            echo -e "\e[91mUnknown argument:\e[0m '${1}'"
-            cmd_help ;;
-        *)
-            cmd_help ;;
-    esac
+	local -r FUNCTION="$1"
+	case "$FUNCTION" in
+		start)
+			start ;;
+		stop)
+			stop ;;
+		resume)
+			resume ;;
+		kill)
+			kill ;;
+		current-version)
+			current_version ;;
+		version)
+			script_version ;;
+		latest-version)
+			latest_version ;;
+		update)
+			update ;;
+		send)
+			send "${@:2}" ;;
+		help)
+			cmd_help "${@:2}" ;;
+		?*)
+			echo -e "\e[91mUnknown argument:\e[0m '${1}'"
+			cmd_help ;;
+		*)
+			cmd_help ;;
+	esac
 }
 main "$@"
