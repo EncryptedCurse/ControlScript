@@ -1,7 +1,7 @@
 ControlScript
 =============
 An easy-to-use Minecraft server management bash script made for use with [tmux](http://tmux.sourceforge.net/) and the [Spigot](http://spigotmc.org) server software.
-<br>The source code is largely based off [Dabo Ross'](https://github.com/daboross) [MCScript](https://github.com/daboross/MCScript), but aims to provide a more polished, updated, and simpler experience.
+<br>The source code is largely based off [Dabo Ross'](https://github.com/daboross) excellent [MCScript](https://github.com/daboross/MCScript), but aims to provide a more polished, updated, and simpler experience.
 
 * Start, stop, forcefully kill or restart your server
 * Easily update Spigot to the latest version
