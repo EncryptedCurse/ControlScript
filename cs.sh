@@ -18,7 +18,7 @@ shopt -s nocasematch
 #	GNU Affero General Public License for more details.
 #
 #   You may obtain a copy of the GNU Affero General Public License at:
-#				https://www.gnu.org/licenses/agpl.html
+#		https://www.gnu.org/licenses/agpl.html
 
 # -- CONFIGURATION.
 
@@ -103,6 +103,7 @@ restart() {
 }
 
 # Resumes/attaches the server's tmux session.
+# An alias for 'tmux attach'.
 resume() {
 	if tmux has-session -t "$TMUX_NAME" &> /dev/null; then
 		tmux attach -t "$TMUX_NAME"
@@ -132,19 +133,19 @@ latest_version() {
 
 # Attempts to update Spigot if a new build is found.
 update() {
-    NEW_JAR="$SERVER_DIR/spigot.jar.new"
-    FINAL_JAR="$SERVER_DIR/spigot.jar"
-    UPDATE_URL="http://ci.md-5.net/job/Spigot/lastSuccessfulBuild/artifact/Spigot-Server/target/spigot.jar"
+	NEW_JAR="$SERVER_DIR/spigot.jar.new"
+	FINAL_JAR="$SERVER_DIR/spigot.jar"
+	UPDATE_URL="http://ci.md-5.net/job/Spigot/lastSuccessfulBuild/artifact/Spigot-Server/target/spigot.jar"
 
     if [[ "$CURRENT_VERSION" != "$LATEST_VERSION" ]]; then
         echo "Server outdated"
-        echo -e "\e[90mDownloading new JAR...\e[0m"
+        echo -e "\e[90mDownloading new version (#"$LATEST_VERSION")...\e[0m"
         wget "$UPDATE_URL" -O "$NEW_JAR"
         IS_VALID_JAR="$(java -jar "$NEW_JAR" --version)"
         ATTEMPTS=0
         until [[ "$IS_VALID_JAR" || "$ATTEMPTS" -gt "5" ]]; do
 			rm -f "$NEW_JAR"
-            echo -e "\e[91mThe downloaded JAR is corrupt! Attempti"
+            echo -e "\e[91mThe downloaded JAR is corrupt! Attempti\e[0m"
             echo -e "\e[90mDownloading new JAR...\e[0m"
             wget "$UPDATE_URL" -O "$NEW_JAR"
             IS_VALID_JAR="`java -jar $NEW_JAR --version`"
@@ -152,14 +153,13 @@ update() {
         done
         if [[ "$IS_VALID_JAR" ]]; then
             echo "Download successful"
-            echo "Deploying"
+            echo "Deploying..."
             if [[ -a "$FINAL_JAR" ]]; then
                 rm -f "$FINAL_JAR"
             fi
             mv -f "$NEW_JAR" "$FINAL_JAR"
         else
-            echo "Downloaded 5 corrupt jars"
-            echo "Giving up"
+            echo -e "\e[1;31mUpdate failed! \e[91mDownloaded 5 corrupt JARs.\e[0m"
             rm -f "$NEW_JAR"
         fi
 	else
@@ -167,15 +167,34 @@ update() {
 	fi
 }
 
+send() {
+    if ! tmux has-session -t "${TMUX_NAME}" &> /dev/null; then
+        echo -e "\e[91mNo server session exists.\e[0m"
+        return
+    fi
+    echo -e "\e[92mExecuting command: \e[0m$@"
+    local -i NUM=0
+    while [[ "$NUM" -lt 50 ]]; do
+        NUM="$((NUM + 1))"
+        tmux send-keys -t "${TMUX_NAME}" "BSpace"
+    done
+    tmux send-keys -l -t "${TMUX_NAME}" "$*" 2> /dev/null \
+    || tmux send-keys -t "${TMUX_NAME}" "$* "
+    tmux send-keys -t "${TMUX_NAME}" "Enter"
+}
+
 cmd_help() {
 	echo
 	echo -e "\e[38;5;69m —————————————————————\e[0m \e[38;5;81mControlScript // help\e[0m \e[38;5;69m—————————————————————\e[0m"
 	echo -e "\e[97m  start\e[37m            Starts the server\e[0m"
 	echo -e "\e[97m  stop\e[37m             Stops the server\e[0m"
+	echo -e "\e[97m  kill\e[37m             Forcefully terminates the server process\e[0m"
 	echo -e "\e[97m  restart\e[37m          Restarts the server\e[0m"
 	echo -e "\e[97m  update\e[37m           Updates Spigot if new version is found\e[0m"
 	echo -e "\e[97m  current-version\e[37m  Displays your server's current Spigot version\e[0m"
 	echo -e "\e[97m  latest-version\e[37m   Displays the latest Spigot version\e[0m"
+	echo -e "\e[97m  send\e[37m             Passes a command to the server"
+	echo -e "\e[97m  resume\e[37m           Resumes the server tmux session"
 	echo
 }
 
@@ -192,8 +211,6 @@ main() {
 			kill ;;
 		current-version)
 			current_version ;;
-		version)
-			script_version ;;
 		latest-version)
 			latest_version ;;
 		update)
