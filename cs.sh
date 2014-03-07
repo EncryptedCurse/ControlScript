@@ -113,8 +113,8 @@ resume() {
 }
 
 # Checks for the current server version.
-SERVER_SOFTWARE="$(java -jar $JAR --version 2> /dev/null | awk 'BEGIN{FS=OFS="-"}{print $2}')"
-CURRENT_VERSION="$(java -jar $JAR --version 2> /dev/null | sed 's/[^0-9]//g')"
+SERVER_SOFTWARE="$(java -jar $SERVER_DIR/$JAR --version 2> /dev/null | awk 'BEGIN{FS=OFS="-"}{print $2}')"
+CURRENT_VERSION="$(java -jar $SERVER_DIR/$JAR --version 2> /dev/null | sed 's/[^0-9]//g')"
 
 current_version() {
 	echo -e "\e[38;5;48mThis server is currently running $SERVER_SOFTWARE #$CURRENT_VERSION.\e[0m"
