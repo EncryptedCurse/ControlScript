@@ -14,7 +14,6 @@ Getting started
 To make ControlScript's functions globally accessible, eliminating the need to enter a specific directory or include the *./cs.sh* prefix, you must set a symbolic link with the help of `alternatives` to create a new command.
 
 > sudo update-alternatives --install /usr/bin/cs cs **/full/path/to/script** 1<br>
-> cs help
 
 If ever needed, you may undo this action by running the following command:
 
