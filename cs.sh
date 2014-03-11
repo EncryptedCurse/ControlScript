@@ -152,7 +152,7 @@ update() {
             ATTEMPTS="$((ATTEMPTS + 1))"
         done
         if [[ "$IS_VALID_JAR" ]]; then
-            echo "Download successful"
+            echo "Download successful."
             echo "Deploying..."
             if [[ -a "$FINAL_JAR" ]]; then
                 rm -f "$FINAL_JAR"
@@ -207,6 +207,8 @@ main() {
 			stop ;;
 		resume)
 			resume ;;
+		restart)
+			restart ;;
 		kill)
 			kill ;;
 		current-version)
