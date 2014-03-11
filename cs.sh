@@ -71,12 +71,8 @@ stop() {
 }
 
 # Forcefully kills the server process.
-PID="$(pgrep java 1> /dev/null)"
-
 kill() {
-	$PID
-	EXIT_CODE=$?
-	if [[ "$EXIT_CODE" -eq 0 ]]; then
+	if [[ -n $(pgrep jav[a]) ]]; then
 		echo -e "\e[mAre you sure you want to forcefully terminate the server?\e[0m"
 		read RESULT
 		if [[ "$RESULT" = "y" || "$RESULT" = "yes" ]]; then
